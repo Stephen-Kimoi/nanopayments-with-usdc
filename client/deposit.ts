@@ -15,8 +15,9 @@
 
 import { GatewayClient } from "@circle-fin/x402-batching/client";
 
-const PRIVATE_KEY = (process.env.PRIVATE_KEY || process.env.EVM_PRIVATE_KEY) as `0x${string}`;
-if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY (or EVM_PRIVATE_KEY) is required in .env");
+const rawKey = process.env.PRIVATE_KEY || process.env.EVM_PRIVATE_KEY || "";
+if (!rawKey) throw new Error("PRIVATE_KEY (or EVM_PRIVATE_KEY) is required in .env");
+const PRIVATE_KEY = (rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`) as `0x${string}`;
 
 const depositAmount = process.argv[2] || "1";
 

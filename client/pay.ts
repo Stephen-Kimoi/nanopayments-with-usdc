@@ -14,10 +14,10 @@
 
 import { GatewayClient } from "@circle-fin/x402-batching/client";
 
-const PRIVATE_KEY = (process.env.PRIVATE_KEY || process.env.EVM_PRIVATE_KEY) as `0x${string}`;
+const rawKey = process.env.PRIVATE_KEY || process.env.EVM_PRIVATE_KEY || "";
+if (!rawKey) throw new Error("PRIVATE_KEY (or EVM_PRIVATE_KEY) is required in .env");
+const PRIVATE_KEY = (rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`) as `0x${string}`;
 const SERVER_URL = process.env.RESOURCE_SERVER_URL || "http://localhost:4021";
-
-if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY (or EVM_PRIVATE_KEY) is required in .env");
 
 // Edit this to change what you ask the LLM
 const PROMPT = "Explain what Circle USDC nano payments are in two sentences.";
