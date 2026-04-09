@@ -5,7 +5,8 @@
     "server": "tsx --env-file=.env server/index.ts",
     "client": "tsx --env-file=.env client/pay.ts",
     "deposit": "tsx --env-file=.env client/deposit.ts",
-    "balance": "tsx --env-file=.env client/check-balance.ts"
+    "balance": "tsx --env-file=.env client/check-balance.ts",
+    "ui": "cd ui && npm run dev"
   },
   "dependencies": {
     "@circle-fin/x402-batching": "latest",
