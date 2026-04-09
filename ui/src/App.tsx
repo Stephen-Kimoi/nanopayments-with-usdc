@@ -28,72 +28,78 @@ const STEPS = [
 ]
 const STEP_DELAYS = [0, 700, 1500, 2500]
 
-// ── Dots loading indicator ────────────────────────────────────
 function Dots() {
   return (
-    <span className="flex gap-1 items-center">
+    <span className="flex gap-1 items-center h-5">
       {[0, 1, 2].map(i => (
-        <span key={i} className={`w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block dot-${i + 1}`} />
+        <span key={i} className={`w-2 h-2 rounded-full bg-emerald-500 inline-block dot-${i + 1}`} />
       ))}
     </span>
   )
 }
 
-// ── Step row ──────────────────────────────────────────────────
 function StepItem({ step, status, last }: { step: typeof STEPS[0]; status: StepStatus; last: boolean }) {
   const done    = status === 'done'
   const active  = status === 'active'
-  const pending = status === 'idle'
   return (
     <div className="flex gap-3">
-      <div className="flex flex-col items-center w-7 shrink-0">
-        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all duration-400
-          ${done    ? 'bg-emerald-500 text-white shadow-sm' : ''}
-          ${active  ? 'border-2 border-emerald-500 text-emerald-600 bg-emerald-50 animate-pulse-ring' : ''}
-          ${pending ? 'border border-slate-200 text-slate-300 bg-white' : ''}
-        `} style={{ fontFamily: 'DM Mono, monospace' }}>
-          {done ? (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          ) : step.id}
+      {/* timeline */}
+      <div className="flex flex-col items-center" style={{ width: 28 }}>
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', fontSize: 11, fontFamily: 'DM Mono, monospace', flexShrink: 0,
+          fontWeight: 600, transition: 'all 0.3s',
+          background: done ? '#10b981' : active ? '#f0fdf4' : '#f8fafc',
+          border: done ? 'none' : active ? '2px solid #10b981' : '1.5px solid #e2e8f0',
+          color: done ? '#fff' : active ? '#10b981' : '#94a3b8',
+        }}>
+          {done
+            ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            : step.id}
         </div>
         {!last && (
-          <div className="relative w-px flex-1 my-1 bg-slate-100 overflow-hidden" style={{ minHeight: 16 }}>
-            {done && <div className="absolute inset-0 bg-emerald-400 step-connector-fill" />}
+          <div style={{ width: 1, flex: 1, minHeight: 12, margin: '3px 0', background: '#e2e8f0', position: 'relative', overflow: 'hidden' }}>
+            {done && <div style={{ position: 'absolute', inset: 0, background: '#10b981' }} className="step-connector-fill" />}
           </div>
         )}
       </div>
-      <div className={`pb-3 ${last ? 'pb-0' : ''}`}>
-        <p className={`text-[13px] font-semibold leading-tight transition-colors duration-300
-          ${done ? 'text-emerald-600' : active ? 'text-slate-800' : 'text-slate-300'}
-        `} style={{ fontFamily: 'Syne, sans-serif' }}>
+
+      {/* text */}
+      <div style={{ paddingBottom: last ? 0 : 12 }}>
+        <p style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: 13, lineHeight: 1.3,
+          color: done ? '#059669' : active ? '#0f172a' : '#cbd5e1',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
           {step.label}
           {step.id === 3 && done && (
-            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>
-              zero gas
-            </span>
+            <span style={{
+              fontSize: 10, padding: '1px 6px', borderRadius: 20,
+              background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0',
+              fontFamily: 'DM Mono, monospace', fontWeight: 500,
+            }}>zero gas</span>
           )}
         </p>
-        <p className={`text-[11px] mt-0.5 transition-colors duration-300
-          ${done ? 'text-emerald-500' : active ? 'text-slate-500' : 'text-slate-200'}
-        `} style={{ fontFamily: 'DM Mono, monospace' }}>
+        <p style={{
+          fontFamily: 'DM Mono, monospace', fontSize: 11, marginTop: 2,
+          color: done ? '#34d399' : active ? '#64748b' : '#e2e8f0',
+        }}>
           {step.sub}
         </p>
-        {active && <div className="mt-1.5"><Dots /></div>}
+        {active && <div style={{ marginTop: 6 }}><Dots /></div>}
       </div>
     </div>
   )
 }
 
-// ── Payment pipeline panel ────────────────────────────────────
 function Pipeline({ step }: { step: number }) {
-  if (step === 0) return null
   const getStatus = (id: number): StepStatus =>
     id < step ? 'done' : id === step ? 'active' : 'idle'
   return (
-    <div className="animate-fade-up rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-4 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>Payment flow</p>
+    <div className="animate-fade-up" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '20px 20px 16px' }}>
+      <p style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 16, fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>
+        Payment flow
+      </p>
       {STEPS.map((s, i) => (
         <StepItem key={s.id} step={s} status={getStatus(s.id)} last={i === STEPS.length - 1} />
       ))}
@@ -101,61 +107,68 @@ function Pipeline({ step }: { step: number }) {
   )
 }
 
-// ── Receipt card ──────────────────────────────────────────────
 function Receipt({ r }: { r: PaymentReceipt }) {
   const deducted = (parseFloat(r.balanceBefore) - parseFloat(r.balanceAfter)).toFixed(6)
+  const rows = [
+    { l: 'Amount',         v: `$${r.amount} ${r.currency}`, green: true },
+    { l: 'Network',        v: r.network },
+    { l: 'Scheme',         v: r.scheme,          mono: true },
+    { l: 'Balance before', v: `${r.balanceBefore} USDC`, mono: true },
+    { l: 'Balance after',  v: `${r.balanceAfter} USDC`,  mono: true },
+    { l: 'Deducted',       v: `−${deducted} USDC`,       mono: true, dim: true },
+  ]
   return (
-    <div className="animate-fade-up rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-[10px] uppercase tracking-widest text-emerald-600 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>Receipt</p>
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500 text-white font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>settled</span>
+    <div className="animate-fade-up" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 16, padding: '20px 20px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <p style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#059669', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>
+          Receipt
+        </p>
+        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#10b981', color: '#fff', fontFamily: 'DM Mono, monospace', fontWeight: 600 }}>
+          settled
+        </span>
       </div>
-      {[
-        { l: 'Amount',         v: `$${r.amount} ${r.currency}`, em: true },
-        { l: 'Network',        v: r.network },
-        { l: 'Scheme',         v: r.scheme,          mono: true },
-        { l: 'Balance before', v: `${r.balanceBefore} USDC`, mono: true },
-        { l: 'Balance after',  v: `${r.balanceAfter} USDC`,  mono: true },
-        { l: 'Deducted',       v: `−${deducted} USDC`,       mono: true, dim: true },
-      ].map(({ l, v, em, mono, dim }) => (
-        <div key={l} className="flex justify-between items-center py-2 border-b border-emerald-100 last:border-0">
-          <span className="text-[12px] text-emerald-700">{l}</span>
-          <span className={`text-[12px] font-medium text-right ml-4 truncate max-w-[55%]
-            ${em ? 'text-emerald-600' : ''}
-            ${dim ? 'text-slate-400' : !em ? 'text-slate-700' : ''}
-          `} style={mono ? { fontFamily: 'DM Mono, monospace' } : {}}>
-            {v}
-          </span>
+      {rows.map(({ l, v, green, mono, dim }) => (
+        <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #d1fae5' }}>
+          <span style={{ fontSize: 12, color: '#065f46' }}>{l}</span>
+          <span style={{
+            fontSize: 12, fontWeight: 600, textAlign: 'right', maxWidth: '55%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            color: green ? '#059669' : dim ? '#94a3b8' : '#1e293b',
+            fontFamily: mono ? 'DM Mono, monospace' : undefined,
+          }}>{v}</span>
         </div>
       ))}
     </div>
   )
 }
 
-// ── Explainer (idle state of right panel) ────────────────────
 function Explainer() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-4 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>How it works</p>
-      <div className="space-y-3.5">
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '20px 20px 16px' }}>
+      <p style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 16, fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>
+        How it works
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {STEPS.map(s => (
-          <div key={s.id} className="flex gap-3 items-start">
-            <span className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 text-slate-500 text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>{s.id}</span>
+          <div key={s.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#f1f5f9', border: '1px solid #e2e8f0',
+              color: '#64748b', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, fontFamily: 'DM Mono, monospace', fontWeight: 600,
+            }}>{s.id}</span>
             <div>
-              <p className="text-[13px] text-slate-700 font-semibold leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>{s.label}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5" style={{ fontFamily: 'DM Mono, monospace' }}>{s.sub}</p>
+              <p style={{ fontSize: 13, fontFamily: 'Syne, sans-serif', fontWeight: 600, color: '#1e293b', lineHeight: 1.3 }}>{s.label}</p>
+              <p style={{ fontSize: 11, fontFamily: 'DM Mono, monospace', color: '#94a3b8', marginTop: 2 }}>{s.sub}</p>
             </div>
           </div>
         ))}
       </div>
-      <p className="text-[12px] text-slate-500 mt-4 pt-4 border-t border-slate-100 leading-relaxed">
+      <p style={{ fontSize: 12, color: '#64748b', marginTop: 16, paddingTop: 14, borderTop: '1px solid #f1f5f9', lineHeight: 1.6 }}>
         No wallet pop-ups. No gas per call. Circle batches signed authorizations and settles onchain.
       </p>
     </div>
   )
 }
 
-// ── Suggestion chips ──────────────────────────────────────────
 const SUGGESTIONS = [
   'What is the x402 payment protocol?',
   'How does batched USDC settlement work?',
@@ -164,23 +177,28 @@ const SUGGESTIONS = [
 
 function EmptyState({ onSuggest }: { onSuggest: (s: string) => void }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-6">
-      <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-3xl shadow-sm">
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '32px 24px', gap: 24 }}>
+      <div style={{ width: 56, height: 56, borderRadius: 18, background: '#f0fdf4', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
         ⚡
       </div>
       <div>
-        <p className="text-slate-800 font-bold text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>Ask anything</p>
-        <p className="text-slate-500 text-sm mt-2 leading-relaxed max-w-xs">
+        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 20, color: '#0f172a' }}>Ask anything</p>
+        <p style={{ color: '#64748b', fontSize: 14, marginTop: 8, lineHeight: 1.7 }}>
           Each message costs{' '}
-          <span className="text-emerald-600 font-semibold" style={{ fontFamily: 'DM Mono, monospace' }}>$0.01 USDC</span>
-          {' '}— paid instantly via Circle Gateway.
-          <br />No wallet pop-ups.
+          <span style={{ color: '#059669', fontFamily: 'DM Mono, monospace', fontWeight: 600 }}>$0.01 USDC</span>
+          {' '}— paid instantly<br />via Circle Gateway. No wallet pop-ups.
         </p>
       </div>
-      <div className="flex flex-col gap-2 w-full max-w-sm">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340 }}>
         {SUGGESTIONS.map(s => (
-          <button key={s} onClick={() => onSuggest(s)}
-            className="text-left text-sm text-slate-600 hover:text-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-emerald-300 bg-white hover:bg-emerald-50 transition-all duration-200 shadow-sm">
+          <button key={s} onClick={() => onSuggest(s)} style={{
+            textAlign: 'left', fontSize: 14, color: '#475569', padding: '10px 16px', borderRadius: 12,
+            border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer',
+            transition: 'all 0.15s', fontFamily: 'Instrument Sans, sans-serif',
+          }}
+            onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = '#6ee7b7'; (e.target as HTMLElement).style.background = '#f0fdf4'; (e.target as HTMLElement).style.color = '#064e3b' }}
+            onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = '#e2e8f0'; (e.target as HTMLElement).style.background = '#fff'; (e.target as HTMLElement).style.color = '#475569' }}
+          >
             {s}
           </button>
         ))}
@@ -257,60 +275,75 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
 
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shadow-sm">
-              <span className="text-white text-sm font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>N</span>
-            </div>
-            <span className="font-bold text-slate-900 text-base tracking-tight" style={{ fontFamily: 'Syne, sans-serif' }}>NanoAI</span>
-            <span className="hidden sm:block text-sm text-slate-400 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>/ pay-per-call inference</span>
+      {/* ── Header ── */}
+      <header style={{
+        background: '#fff', borderBottom: '1px solid #e2e8f0',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 28px', height: 56, flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Syne, sans-serif' }}>N</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span className="text-xs text-slate-600 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>Base Sepolia</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
-              <span className={`w-2 h-2 rounded-full shrink-0 transition-colors ${balFetching ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
-              <span className="text-xs text-emerald-700 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>
-                Gateway: <span className="font-bold">{balFetching ? '...' : `${balance.gateway} USDC`}</span>
-              </span>
-            </div>
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 16, color: '#0f172a' }}>NanoAI</span>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, color: '#94a3b8', fontWeight: 400 }}>/ pay-per-call inference</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', display: 'inline-block' }} />
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#475569', fontWeight: 500 }}>Base Sepolia</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 20, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: balFetching ? '#f59e0b' : '#10b981', display: 'inline-block', transition: 'background 0.3s' }} />
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#065f46', fontWeight: 500 }}>
+              Gateway: <strong>{balFetching ? '...' : `${balance.gateway} USDC`}</strong>
+            </span>
           </div>
         </div>
       </header>
 
-      {/* Body */}
-      <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-5 flex gap-5" style={{ minHeight: 0 }}>
+      {/* ── Body ── */}
+      <div style={{ flex: 1, display: 'flex', gap: 20, padding: '20px 24px', overflow: 'hidden', maxWidth: 1280, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
-        {/* Chat panel */}
-        <div className="flex-1 flex flex-col min-w-0 rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+        {/* ── Chat panel ── */}
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0,
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 20,
+          overflow: 'hidden',
+        }}>
+          {/* Messages scroll area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             {messages.length === 0 && !loading
               ? <EmptyState onSuggest={s => { setInput(s); inputRef.current?.focus() }} />
               : messages.map((m, i) =>
                   m.role === 'user' ? (
-                    <div key={i} className="flex justify-end animate-fade-up">
-                      <div className="max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-white leading-relaxed shadow-sm bg-slate-800">
+                    <div key={i} className="animate-fade-up" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <div style={{
+                        maxWidth: '72%', borderRadius: '18px 18px 4px 18px', padding: '12px 16px',
+                        background: '#1e293b', color: '#f1f5f9', fontSize: 14, lineHeight: 1.65,
+                        fontFamily: 'Instrument Sans, sans-serif',
+                      }}>
                         {m.content}
                       </div>
                     </div>
                   ) : (
-                    <div key={i} className="flex gap-3 animate-fade-up">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                        <span className="text-white text-xs font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>N</span>
+                    <div key={i} className="animate-fade-up" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'Syne, sans-serif' }}>N</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-slate-800 leading-relaxed bg-slate-50 border border-slate-200">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          borderRadius: '18px 18px 18px 4px', padding: '12px 16px',
+                          background: '#f8fafc', border: '1px solid #e2e8f0',
+                          color: '#1e293b', fontSize: 14, lineHeight: 1.65,
+                          fontFamily: 'Instrument Sans, sans-serif',
+                        }}>
                           {m.content}
                         </div>
                         {m.receipt && (
-                          <p className="text-[11px] mt-1.5 text-emerald-600 font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>
+                          <p style={{ fontSize: 11, marginTop: 6, color: '#059669', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>
                             ✓ ${m.receipt.amount} USDC paid · {m.receipt.balanceBefore} → {m.receipt.balanceAfter} USDC
                           </p>
                         )}
@@ -319,12 +352,12 @@ export default function App() {
                   )
                 )
             }
-            {loading && currentStep === 0 && (
-              <div className="flex gap-3 animate-fade-up">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
-                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>N</span>
+            {loading && (
+              <div className="animate-fade-up" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'Syne, sans-serif' }}>N</span>
                 </div>
-                <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center bg-slate-50 border border-slate-200">
+                <div style={{ borderRadius: '18px 18px 18px 4px', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center' }}>
                   <Dots />
                 </div>
               </div>
@@ -332,9 +365,9 @@ export default function App() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
-          <div className="border-t border-slate-200 p-4 bg-white">
-            <div className="flex gap-3 items-end">
+          {/* Input bar */}
+          <div style={{ borderTop: '1px solid #f1f5f9', padding: '16px 20px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -343,38 +376,56 @@ export default function App() {
                 disabled={loading}
                 placeholder="Ask anything — each reply costs $0.01 USDC"
                 rows={1}
-                className="flex-1 text-sm text-slate-800 placeholder:text-slate-400 resize-none outline-none disabled:opacity-50 rounded-xl px-4 py-3 transition-colors border border-slate-200 hover:border-slate-300 focus:border-emerald-400 bg-slate-50"
-                style={{ fontFamily: 'Instrument Sans, sans-serif', lineHeight: '1.6' }}
+                style={{
+                  flex: 1, resize: 'none', outline: 'none', fontSize: 14, lineHeight: 1.6,
+                  padding: '10px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0',
+                  background: '#f8fafc', color: '#0f172a', fontFamily: 'Instrument Sans, sans-serif',
+                  opacity: loading ? 0.5 : 1, transition: 'border-color 0.15s',
+                }}
+                onFocus={e => (e.target.style.borderColor = '#6ee7b7')}
+                onBlur={e => (e.target.style.borderColor = '#e2e8f0')}
               />
-              <button onClick={send} disabled={loading || !input.trim()}
-                className="shrink-0 w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <button
+                onClick={send}
+                disabled={loading || !input.trim()}
+                style={{
+                  width: 42, height: 42, borderRadius: 12, background: '#10b981', border: 'none',
+                  cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
+                  opacity: loading || !input.trim() ? 0.35 : 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s', flexShrink: 0,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M14 8L2 2l2 6-2 6 12-6z" fill="white" />
                 </svg>
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 text-center" style={{ fontFamily: 'DM Mono, monospace' }}>
+            <p style={{ fontSize: 11, color: '#cbd5e1', marginTop: 8, textAlign: 'center', fontFamily: 'DM Mono, monospace' }}>
               ↵ send · shift+↵ newline · powered by Circle Gateway Nano Payments
             </p>
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="w-72 shrink-0 hidden lg:flex flex-col gap-4">
-          {currentStep > 0 && <Pipeline step={currentStep} />}
-          {currentStep === 0 && (lastReceipt ? <Receipt r={lastReceipt} /> : <Explainer />)}
+        {/* ── Right sidebar ── */}
+        <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
+          {/* Pipeline or explainer */}
+          {currentStep > 0
+            ? <Pipeline step={currentStep} />
+            : (lastReceipt ? <Receipt r={lastReceipt} /> : <Explainer />)
+          }
 
-          {/* Stats grid */}
-          <div className="rounded-2xl p-5 bg-white border border-slate-200 shadow-sm grid grid-cols-2 gap-4">
+          {/* Stats */}
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 12px' }}>
             {[
-              { l: 'Price / call', v: '$0.01 USDC', em: true },
-              { l: 'Network',      v: 'Base Sepolia', em: false },
-              { l: 'Settlement',   v: 'Batched',      em: false },
-              { l: 'Gas per call', v: '$0.00',        em: true },
-            ].map(({ l, v, em }) => (
+              { l: 'Price / call', v: '$0.01 USDC', green: true },
+              { l: 'Network',      v: 'Base Sepolia', green: false },
+              { l: 'Settlement',   v: 'Batched',      green: false },
+              { l: 'Gas per call', v: '$0.00',        green: true },
+            ].map(({ l, v, green }) => (
               <div key={l}>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide font-medium" style={{ fontFamily: 'DM Mono, monospace' }}>{l}</p>
-                <p className={`text-sm font-bold mt-1 ${em ? 'text-emerald-600' : 'text-slate-700'}`} style={{ fontFamily: 'Syne, sans-serif' }}>{v}</p>
+                <p style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>{l}</p>
+                <p style={{ fontSize: 14, fontWeight: 700, marginTop: 4, color: green ? '#059669' : '#1e293b', fontFamily: 'Syne, sans-serif' }}>{v}</p>
               </div>
             ))}
           </div>
