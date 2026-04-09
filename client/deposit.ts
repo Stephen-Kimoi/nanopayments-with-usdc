@@ -15,8 +15,8 @@
 
 import { GatewayClient } from "@circle-fin/x402-batching/client";
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY is required — copy .env.example to .env");
+const PRIVATE_KEY = (process.env.PRIVATE_KEY || process.env.EVM_PRIVATE_KEY) as `0x${string}`;
+if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY (or EVM_PRIVATE_KEY) is required in .env");
 
 const depositAmount = process.argv[2] || "1";
 
