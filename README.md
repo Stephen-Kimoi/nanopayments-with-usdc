@@ -23,12 +23,12 @@ Buyer                          Server                        Circle Gateway
   |<── 200 + LLM response ────────|                                |
 ```
 
-1. Client makes a request to the LLM endpoint
-2. Server returns `402 Payment Required` with Circle `GatewayWalletBatched` payment requirements
-3. Client signs an EIP-3009 `TransferWithAuthorization` message offchain (no gas cost)
+1. Client requests the LLM endpoint
+2. Server returns `402 Payment Required` with `GatewayWalletBatched` payment requirements
+3. Client signs an EIP-3009 `TransferWithAuthorization` message offchain (zero gas)
 4. Client retries with the signed payload in the `PAYMENT-SIGNATURE` header
 5. Server calls Circle's Gateway API to settle the payment
-6. On success, server forwards the request to OpenAI and returns the response
+6. On success, server calls OpenAI and returns the LLM response
 
 Circle aggregates signed authorizations and settles them in batches onchain, making sub-cent payments practical.
 
@@ -38,10 +38,12 @@ Circle aggregates signed authorizations and settles them in batches onchain, mak
 
 - **[Circle Gateway Nano Payments](https://developers.circle.com/gateway/nanopayments)** — gasless USDC micropayments via batched settlement
 - **[x402 protocol](https://developers.circle.com/gateway/nanopayments/concepts/x402)** — HTTP-native payment negotiation using the `402 Payment Required` status code
-- **[@circle-fin/x402-batching](https://www.npmjs.com/package/@circle-fin/x402-batching)** — Circle's SDK for both server-side middleware and client-side payment
+- **[@circle-fin/x402-batching](https://www.npmjs.com/package/@circle-fin/x402-batching)** — Circle's official SDK for server middleware and client payment
 - **Express** — server framework
 - **OpenAI SDK** — LLM inference (any OpenAI-compatible endpoint works)
-- **Network** — Base Sepolia testnet
+- **React + TypeScript + Vite** — demo UI
+- **Network** — Base Sepolia testnet (`eip155:84532`)
+- **Price per call** — $0.01 USDC
 
 ---
 
@@ -49,10 +51,16 @@ Circle aggregates signed authorizations and settles them in batches onchain, mak
 
 ```
 ├── server/
-│   └── index.ts       # Express server with Circle Gateway payment middleware
+│   └── index.ts          # Express seller + embedded GatewayClient for /demo/* routes
 ├── client/
-│   ├── pay.ts         # Buyer client — automatic x402 payment flow
-│   └── deposit.ts     # One-time USDC deposit into Circle Gateway Wallet
+│   ├── pay.ts            # Standalone buyer client — automatic x402 payment flow
+│   ├── deposit.ts        # One-time USDC deposit into Circle Gateway Wallet
+│   └── check-balance.ts  # Poll Gateway balance until deposit is credited
+├── ui/
+│   ├── src/
+│   │   ├── App.tsx       # React demo UI with animated 5-step payment pipeline
+│   │   └── index.css     # Tailwind + custom animations
+│   └── vite.config.ts    # Proxies /demo/* to Express server on port 4021
 ├── .env.example
 ├── package.json
 └── tsconfig.json
@@ -64,8 +72,8 @@ Circle aggregates signed authorizations and settles them in batches onchain, mak
 
 - Node.js v18+
 - Two Base Sepolia wallets: one for the seller (receives USDC), one for the buyer (funds payments)
-- Testnet USDC for the buyer wallet — get it at [faucet.circle.com](https://faucet.circle.com)
-- Testnet ETH for gas on Base Sepolia — get it at [alchemy.com/faucets/base-sepolia](https://www.alchemy.com/faucets/base-sepolia)
+- Testnet USDC for the buyer wallet — [faucet.circle.com](https://faucet.circle.com)
+- Testnet ETH for gas on Base Sepolia — [alchemy.com/faucets/base-sepolia](https://www.alchemy.com/faucets/base-sepolia)
 - An OpenAI API key (or any OpenAI-compatible endpoint)
 
 ---
@@ -78,6 +86,7 @@ Circle aggregates signed authorizations and settles them in batches onchain, mak
 git clone https://github.com/Stephen-Kimoi/nanopayments-with-usdc.git
 cd nanopayments-with-usdc
 npm install
+cd ui && npm install && cd ..
 ```
 
 **2. Configure environment**
@@ -89,28 +98,34 @@ cp .env.example .env
 Fill in `.env`:
 
 ```env
-# Seller — wallet address that receives USDC
+# Seller — wallet address that receives $0.01 USDC per call
 EVM_ADDRESS=0xYourSellerWalletAddress
+
+# Buyer — private key of the wallet funding inference calls
+# Also used by the server's embedded GatewayClient for the demo UI
+EVM_PRIVATE_KEY=0xYourBuyerPrivateKey
 
 # LLM backend
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 
-# Buyer — private key of the wallet funding inference calls
-PRIVATE_KEY=0xYourBuyerPrivateKey
-
-# Server URL (for the client)
+# Server URL (for the standalone client)
 RESOURCE_SERVER_URL=http://localhost:4021
 ```
 
 **3. Deposit USDC into the Gateway Wallet (buyer, one-time)**
 
 ```bash
-npm run deposit          # deposits 1 USDC
-npm run deposit -- 0.5  # deposits 0.5 USDC
+npm run deposit -- 0.10
 ```
 
-This runs two transactions: `approve` and `deposit` into Circle's Gateway Wallet contract. Base Sepolia deposits take ~13-19 minutes to confirm onchain.
+This runs two transactions: `approve` and `deposit` into Circle's Gateway Wallet contract (`0x0077777d7EBA4688BDeF3E311b846F25870A19B9`). Base Sepolia deposits take ~13–19 minutes for Circle to credit.
+
+Poll until the balance appears:
+
+```bash
+npm run balance
+```
 
 ---
 
@@ -126,26 +141,45 @@ npm run server
 Server running at http://localhost:4021
 Seller address : 0x...
 Model          : gpt-4o-mini
-Price per call : $0.001 USDC (Base Sepolia)
+Price per call : $0.01 USDC (Base Sepolia)
 ```
 
-**Terminal 2 — make a paid inference call**
+**Terminal 2 — demo UI**
+
+```bash
+npm run ui
+```
+
+Open `http://localhost:5173`. The UI calls `/demo/balance` and `/demo/chat` — the server acts as the buyer internally, so no private keys touch the browser. Each message triggers a full x402 payment cycle and shows the animated 5-step pipeline + receipt.
+
+**Terminal 2 (alternative) — make a paid call from the terminal**
 
 ```bash
 npm run client
 ```
 
 ```
-Gateway balance : 1.000000 USDC
+Gateway balance : 0.09 USDC
 Calling : POST http://localhost:4021/chat
-
-Payment required: $0.001000 USDC (GatewayWalletBatched)
-Network          : eip155:84532
 
 Status : 200
 Reply  : Circle USDC nano payments are...
 Model  : gpt-4o-mini
+
+Gateway balance after : 0.08 USDC
 ```
+
+---
+
+## Scripts
+
+| Script | What it does |
+|---|---|
+| `npm run server` | Start Express server on port 4021 |
+| `npm run ui` | Start Vite dev server on port 5173 |
+| `npm run client` | Make one paid inference call from the terminal |
+| `npm run deposit -- <amount>` | Deposit USDC into Circle Gateway Wallet |
+| `npm run balance` | Poll Gateway balance every 60s |
 
 ---
 
@@ -156,8 +190,6 @@ Model  : gpt-4o-mini
 - [Batched settlement](https://developers.circle.com/gateway/nanopayments/concepts/batched-settlement)
 - [Seller quickstart](https://developers.circle.com/gateway/nanopayments/quickstarts/seller)
 - [Buyer quickstart](https://developers.circle.com/gateway/nanopayments/quickstarts/buyer)
-- [x402 seller integration](https://developers.circle.com/gateway/nanopayments/howtos/x402-seller)
-- [x402 buyer integration](https://developers.circle.com/gateway/nanopayments/howtos/x402-buyer)
 - [EIP-3009 signing](https://developers.circle.com/gateway/nanopayments/howtos/eip-3009-signing)
 - [Supported networks](https://developers.circle.com/gateway/nanopayments/supported-networks)
 - [SDK reference](https://developers.circle.com/gateway/nanopayments/references/sdk)
