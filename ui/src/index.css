@@ -3,8 +3,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #070b12;
-  color: #e2e8f4;
+  background: #f8fafc;
+  color: #0f172a;
   font-family: 'Instrument Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -54,4 +54,4 @@ body {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e2a3a; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
