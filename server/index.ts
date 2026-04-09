@@ -30,13 +30,13 @@ app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     model: MODEL,
-    price: "$0.001 USDC per call",
+    price: "$0.01 USDC per call",
     network: "Base Sepolia (eip155:84532)",
     sellerAddress: SELLER_ADDRESS,
   });
 });
 
-app.post("/chat", gateway.require("$0.001"), async (req, res) => {
+app.post("/chat", gateway.require("$0.01"), async (req, res) => {
   const { payer, amount, network } = (req as any).payment!;
   console.log(`Payment received: ${amount} USDC from ${payer} on ${network}`);
 
@@ -67,5 +67,5 @@ app.listen(4021, () => {
   console.log("Server running at http://localhost:4021");
   console.log(`Seller address : ${SELLER_ADDRESS}`);
   console.log(`Model          : ${MODEL}`);
-  console.log(`Price per call : $0.001 USDC (Base Sepolia)`);
+  console.log(`Price per call : $0.01 USDC (Base Sepolia)`);
 });

@@ -33,7 +33,7 @@ async function main() {
   console.log(`Gateway balance : ${balances.gateway.formattedAvailable} USDC`);
   console.log(`Wallet USDC     : ${balances.wallet.formatted} USDC\n`);
 
-  if (balances.gateway.available < 1_000n) {
+  if (balances.gateway.available < 10_000n) {
     console.log("Gateway balance too low. Run: npm run deposit");
     process.exit(1);
   }
